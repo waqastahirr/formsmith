@@ -1,5 +1,5 @@
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Form, FormField } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, X } from 'lucide-react';
 
 interface FormPreviewProps {
   form: Form;
@@ -51,6 +52,63 @@ const FormPreview: FC<FormPreviewProps> = ({ form }) => {
         </form>
       </CardContent>
     </Card>
+  );
+};
+
+const ArrayField: FC<{ field: FormField, type: 'text' | 'number' }> = ({ field, type }) => {
+  const [items, setItems] = useState<string[]>([""]);
+  
+  const addItem = () => {
+    setItems([...items, ""]);
+  };
+  
+  const removeItem = (index: number) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+  
+  const updateItem = (index: number, value: string) => {
+    const newItems = [...items];
+    newItems[index] = value;
+    setItems(newItems);
+  };
+  
+  return (
+    <div className="space-y-2">
+      {items.map((item, index) => (
+        <div key={index} className="flex items-center space-x-2">
+          <Input
+            type={type}
+            value={item}
+            onChange={(e) => updateItem(index, e.target.value)}
+            placeholder={field.placeholder}
+            className="flex-grow"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => removeItem(index)}
+            className="h-9 w-9"
+            disabled={items.length <= 1}
+          >
+            <X size={16} />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={addItem}
+        className="w-full"
+        disabled={field.validations?.maxItems ? items.length >= field.validations.maxItems : false}
+      >
+        <Plus size={16} className="mr-2" />
+        Add Item
+      </Button>
+    </div>
   );
 };
 
@@ -135,19 +193,10 @@ const renderField = (field: FormField) => {
       );
     
     case 'textArray':
-      // For simplicity, just showing one input
-      // In a real app, you'd create a component that allows adding multiple inputs
-      return (
-        <div className="space-y-2">
-          <Input
-            placeholder={field.placeholder || "Add item"}
-            className="w-full"
-          />
-          <Button type="button" variant="outline" size="sm" className="w-full">
-            + Add Another
-          </Button>
-        </div>
-      );
+      return <ArrayField field={field} type="text" />;
+      
+    case 'numberArray':
+      return <ArrayField field={field} type="number" />;
     
     case 'date':
       return (

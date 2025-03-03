@@ -6,6 +6,7 @@ export type FieldType =
   | 'multiSelect'
   | 'checkbox'
   | 'textArray'
+  | 'numberArray'  // Added new field type
   | 'email'
   | 'password'
   | 'date'
@@ -31,6 +32,8 @@ export interface FormField {
     min?: number;
     max?: number;
     pattern?: string;
+    minItems?: number;  // Added for array validations
+    maxItems?: number;  // Added for array validations
   };
 }
 

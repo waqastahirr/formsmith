@@ -11,7 +11,8 @@ import {
   AlignLeft, 
   Mail, 
   LockKeyhole, 
-  Calendar 
+  Calendar,
+  ListOrdered
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,9 @@ const getFieldIcon = (type: string) => {
     case 'checkbox':
       return <CheckSquare size={16} />;
     case 'textArray':
-      return <AlignLeft size={16} />;
+      return <ListOrdered size={16} />;
+    case 'numberArray':
+      return <ListOrdered size={16} />;
     case 'email':
       return <Mail size={16} />;
     case 'password':

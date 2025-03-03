@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect } from 'react';
 import { FormField, FieldOption, FieldType } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
@@ -44,6 +43,7 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
   const [newOption, setNewOption] = useState({ label: '', value: '' });
   
   const hasOptions = ['select', 'multiSelect'].includes(field.type);
+  const isArrayType = ['textArray', 'numberArray'].includes(field.type);
 
   const handleChange = (key: keyof FormField, value: any) => {
     onUpdate({
@@ -67,7 +67,6 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
     handleChange('options', updatedOptions);
   };
 
-  // Reset options if field type changes from a type that doesn't need options
   useEffect(() => {
     if (!hasOptions && options.length > 0) {
       setOptions([]);
@@ -239,6 +238,35 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
                 onChange={(e) => handleChange('validations', { 
                   ...field.validations, 
                   maxLength: e.target.value ? Number(e.target.value) : undefined 
+                })}
+              />
+            </div>
+          </div>
+        )}
+
+        {isArrayType && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min-items">Min Items</Label>
+              <Input
+                id="min-items"
+                type="number"
+                value={field.validations?.minItems ?? ''}
+                onChange={(e) => handleChange('validations', { 
+                  ...field.validations, 
+                  minItems: e.target.value ? Number(e.target.value) : undefined 
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="max-items">Max Items</Label>
+              <Input
+                id="max-items"
+                type="number"
+                value={field.validations?.maxItems ?? ''}
+                onChange={(e) => handleChange('validations', { 
+                  ...field.validations, 
+                  maxItems: e.target.value ? Number(e.target.value) : undefined 
                 })}
               />
             </div>
