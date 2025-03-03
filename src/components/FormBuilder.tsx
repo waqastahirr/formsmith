@@ -22,7 +22,8 @@ import {
   AlignLeft, 
   Mail,
   Calendar,
-  ListOrdered
+  ListOrdered,
+  Flame
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -35,6 +36,7 @@ const fieldTypes: { type: FieldType; label: string; icon: JSX.Element }[] = [
   { type: 'date', label: 'Date', icon: <Calendar size={16} /> },
   { type: 'textArray', label: 'Text Array', icon: <ListOrdered size={16} /> },
   { type: 'numberArray', label: 'Number Array', icon: <ListOrdered size={16} /> },
+  { type: 'naturalGasInput', label: 'Natural Gas Input', icon: <Flame size={16} /> },
 ];
 
 const initialForm: Form = {

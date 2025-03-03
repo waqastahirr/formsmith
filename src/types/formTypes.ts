@@ -6,15 +6,25 @@ export type FieldType =
   | 'multiSelect'
   | 'checkbox'
   | 'textArray'
-  | 'numberArray'  // Added new field type
+  | 'numberArray'
   | 'email'
   | 'password'
   | 'date'
-  | 'textarea';
+  | 'textarea'
+  | 'naturalGasInput';  // New composite field type
 
 export interface FieldOption {
   label: string;
   value: string;
+}
+
+// New interface for natural gas input subfields
+export interface NaturalGasSubFields {
+  value: string;
+  units: string;
+  type: string;
+  stage: string;
+  use: string;
 }
 
 export interface FormField {
@@ -32,8 +42,14 @@ export interface FormField {
     min?: number;
     max?: number;
     pattern?: string;
-    minItems?: number;  // Added for array validations
-    maxItems?: number;  // Added for array validations
+    minItems?: number;
+    maxItems?: number;
+  };
+  subFieldOptions?: {
+    units?: FieldOption[];
+    types?: FieldOption[];
+    stages?: FieldOption[];
+    uses?: FieldOption[];
   };
 }
 

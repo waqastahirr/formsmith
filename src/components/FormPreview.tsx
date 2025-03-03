@@ -1,4 +1,3 @@
-
 import { FC, useState } from 'react';
 import { Form, FormField } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Flame } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface FormPreviewProps {
   form: Form;
@@ -51,6 +51,122 @@ const FormPreview: FC<FormPreviewProps> = ({ form }) => {
           )}
         </form>
       </CardContent>
+    </Card>
+  );
+};
+
+const NaturalGasInputField: FC<{ field: FormField }> = ({ field }) => {
+  const [values, setValues] = useState({
+    value: '',
+    units: '',
+    type: '',
+    stage: '',
+    use: ''
+  });
+
+  const handleChange = (subField: string, value: string) => {
+    setValues(prev => ({
+      ...prev,
+      [subField]: value
+    }));
+  };
+
+  return (
+    <Card className="border border-muted p-4">
+      <div className="flex items-center mb-2">
+        <Flame size={16} className="mr-2 text-orange-500" />
+        <h3 className="text-sm font-medium">Natural Gas Input</h3>
+      </div>
+      
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor={`${field.id}-value`} className="text-xs">Value</Label>
+          <Input
+            id={`${field.id}-value`}
+            type="number"
+            value={values.value}
+            onChange={(e) => handleChange('value', e.target.value)}
+            className="mt-1"
+            placeholder="Enter value"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor={`${field.id}-units`} className="text-xs">Units</Label>
+          <Select
+            value={values.units}
+            onValueChange={(value) => handleChange('units', value)}
+          >
+            <SelectTrigger id={`${field.id}-units`} className="mt-1">
+              <SelectValue placeholder="Select units" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.subFieldOptions?.units?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor={`${field.id}-type`} className="text-xs">Type</Label>
+          <Select
+            value={values.type}
+            onValueChange={(value) => handleChange('type', value)}
+          >
+            <SelectTrigger id={`${field.id}-type`} className="mt-1">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.subFieldOptions?.types?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor={`${field.id}-stage`} className="text-xs">Stage</Label>
+          <Select
+            value={values.stage}
+            onValueChange={(value) => handleChange('stage', value)}
+          >
+            <SelectTrigger id={`${field.id}-stage`} className="mt-1">
+              <SelectValue placeholder="Select stage" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.subFieldOptions?.stages?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor={`${field.id}-use`} className="text-xs">Use</Label>
+          <Select
+            value={values.use}
+            onValueChange={(value) => handleChange('use', value)}
+          >
+            <SelectTrigger id={`${field.id}-use`} className="mt-1">
+              <SelectValue placeholder="Select use" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.subFieldOptions?.uses?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </Card>
   );
 };
@@ -207,6 +323,9 @@ const renderField = (field: FormField) => {
           required={field.required}
         />
       );
+      
+    case 'naturalGasInput':
+      return <NaturalGasInputField field={field} />;
     
     default:
       return (

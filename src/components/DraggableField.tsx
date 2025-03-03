@@ -12,7 +12,8 @@ import {
   Mail, 
   LockKeyhole, 
   Calendar,
-  ListOrdered
+  ListOrdered,
+  Flame  // Added for natural gas
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,8 @@ const getFieldIcon = (type: string) => {
       return <Calendar size={16} />;
     case 'textarea':
       return <AlignLeft size={16} />;
+    case 'naturalGasInput':
+      return <Flame size={16} />;
     default:
       return <Type size={16} />;
   }

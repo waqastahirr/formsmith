@@ -1,3 +1,4 @@
+
 import { FC, useState, useEffect } from 'react';
 import { FormField, FieldOption, FieldType } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
@@ -16,9 +17,11 @@ import {
   AlignLeft, 
   Mail,
   LockKeyhole,
-  Calendar
+  Calendar,
+  Flame
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 interface FormFieldOptionsProps {
   field: FormField;
@@ -33,9 +36,35 @@ const fieldTypeOptions: { value: FieldType; label: string; icon: JSX.Element }[]
   { value: 'multiSelect', label: 'Multi Select', icon: <List size={16} /> },
   { value: 'checkbox', label: 'Checkbox', icon: <CheckSquare size={16} /> },
   { value: 'textArray', label: 'Text Array', icon: <AlignLeft size={16} /> },
+  { value: 'naturalGasInput', label: 'Natural Gas Input', icon: <Flame size={16} /> },
   { value: 'email', label: 'Email', icon: <Mail size={16} /> },
   { value: 'password', label: 'Password', icon: <LockKeyhole size={16} /> },
   { value: 'date', label: 'Date', icon: <Calendar size={16} /> },
+];
+
+// Default options for natural gas input subfields
+const defaultUnitOptions = [
+  { label: 'kWh', value: 'kwh' },
+  { label: 'MJ/kg product', value: 'mj_kg_product' },
+  { label: 'm³', value: 'm3' },
+];
+
+const defaultTypeOptions = [
+  { label: 'Conventional', value: 'conventional' },
+  { label: 'Standard grid', value: 'standard_grid' },
+  { label: 'PV', value: 'pv' },
+];
+
+const defaultStageOptions = [
+  { label: 'Mixing', value: 'mixing' },
+  { label: 'Processing', value: 'processing' },
+  { label: 'Packaging', value: 'packaging' },
+];
+
+const defaultUseOptions = [
+  { label: 'Cooling', value: 'cooling' },
+  { label: 'Heat', value: 'heat' },
+  { label: 'Power', value: 'power' },
 ];
 
 const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
@@ -44,6 +73,22 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
   
   const hasOptions = ['select', 'multiSelect'].includes(field.type);
   const isArrayType = ['textArray', 'numberArray'].includes(field.type);
+  const isNaturalGasInput = field.type === 'naturalGasInput';
+
+  // Initialize subfield options for natural gas input
+  useEffect(() => {
+    if (isNaturalGasInput && !field.subFieldOptions) {
+      onUpdate({
+        ...field,
+        subFieldOptions: {
+          units: defaultUnitOptions,
+          types: defaultTypeOptions,
+          stages: defaultStageOptions,
+          uses: defaultUseOptions,
+        }
+      });
+    }
+  }, [field.type]);
 
   const handleChange = (key: keyof FormField, value: any) => {
     onUpdate({
@@ -65,6 +110,41 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
     const updatedOptions = options.filter((_, i) => i !== index);
     setOptions(updatedOptions);
     handleChange('options', updatedOptions);
+  };
+
+  const handleSubFieldOptionsChange = (
+    subFieldKey: 'units' | 'types' | 'stages' | 'uses',
+    options: FieldOption[]
+  ) => {
+    onUpdate({
+      ...field,
+      subFieldOptions: {
+        ...field.subFieldOptions,
+        [subFieldKey]: options
+      }
+    });
+  };
+
+  const handleAddSubFieldOption = (
+    subFieldKey: 'units' | 'types' | 'stages' | 'uses',
+    newOption: FieldOption
+  ) => {
+    if (newOption.label.trim() && newOption.value.trim()) {
+      const currentOptions = field.subFieldOptions?.[subFieldKey] || [];
+      const updatedOptions = [...currentOptions, { ...newOption }];
+      
+      handleSubFieldOptionsChange(subFieldKey, updatedOptions);
+    }
+  };
+
+  const handleRemoveSubFieldOption = (
+    subFieldKey: 'units' | 'types' | 'stages' | 'uses',
+    index: number
+  ) => {
+    const currentOptions = field.subFieldOptions?.[subFieldKey] || [];
+    const updatedOptions = currentOptions.filter((_, i) => i !== index);
+    
+    handleSubFieldOptionsChange(subFieldKey, updatedOptions);
   };
 
   useEffect(() => {
@@ -184,6 +264,207 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {isNaturalGasInput && (
+          <div className="space-y-4 mt-4">
+            <h3 className="text-sm font-medium">Natural Gas Input Configuration</h3>
+            <Separator />
+            
+            {/* Units Options */}
+            <div className="space-y-2">
+              <Label className="mb-2 block text-xs">Units Options</Label>
+              {field.subFieldOptions?.units?.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    value={option.label}
+                    className="flex-grow text-xs"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveSubFieldOption('units', index)}
+                    className="h-6 w-6"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <Input
+                  placeholder="Add unit option"
+                  value={newOption.label}
+                  onChange={(e) => setNewOption({ 
+                    label: e.target.value, 
+                    value: e.target.value.toLowerCase().replace(/\s+/g, '_') 
+                  })}
+                  className="flex-grow text-xs"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    handleAddSubFieldOption('units', newOption);
+                    setNewOption({ label: '', value: '' });
+                  }}
+                  disabled={!newOption.label.trim()}
+                  className="h-6 w-6"
+                >
+                  <PlusCircle size={12} />
+                </Button>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            {/* Type Options */}
+            <div className="space-y-2">
+              <Label className="mb-2 block text-xs">Type Options</Label>
+              {field.subFieldOptions?.types?.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    value={option.label}
+                    className="flex-grow text-xs"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveSubFieldOption('types', index)}
+                    className="h-6 w-6"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <Input
+                  placeholder="Add type option"
+                  value={newOption.label}
+                  onChange={(e) => setNewOption({ 
+                    label: e.target.value, 
+                    value: e.target.value.toLowerCase().replace(/\s+/g, '_') 
+                  })}
+                  className="flex-grow text-xs"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    handleAddSubFieldOption('types', newOption);
+                    setNewOption({ label: '', value: '' });
+                  }}
+                  disabled={!newOption.label.trim()}
+                  className="h-6 w-6"
+                >
+                  <PlusCircle size={12} />
+                </Button>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            {/* Stage Options */}
+            <div className="space-y-2">
+              <Label className="mb-2 block text-xs">Stage Options</Label>
+              {field.subFieldOptions?.stages?.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    value={option.label}
+                    className="flex-grow text-xs"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveSubFieldOption('stages', index)}
+                    className="h-6 w-6"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <Input
+                  placeholder="Add stage option"
+                  value={newOption.label}
+                  onChange={(e) => setNewOption({ 
+                    label: e.target.value, 
+                    value: e.target.value.toLowerCase().replace(/\s+/g, '_') 
+                  })}
+                  className="flex-grow text-xs"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    handleAddSubFieldOption('stages', newOption);
+                    setNewOption({ label: '', value: '' });
+                  }}
+                  disabled={!newOption.label.trim()}
+                  className="h-6 w-6"
+                >
+                  <PlusCircle size={12} />
+                </Button>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            {/* Use Options */}
+            <div className="space-y-2">
+              <Label className="mb-2 block text-xs">Use Options</Label>
+              {field.subFieldOptions?.uses?.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Input
+                    value={option.label}
+                    className="flex-grow text-xs"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveSubFieldOption('uses', index)}
+                    className="h-6 w-6"
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <Input
+                  placeholder="Add use option"
+                  value={newOption.label}
+                  onChange={(e) => setNewOption({ 
+                    label: e.target.value, 
+                    value: e.target.value.toLowerCase().replace(/\s+/g, '_') 
+                  })}
+                  className="flex-grow text-xs"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    handleAddSubFieldOption('uses', newOption);
+                    setNewOption({ label: '', value: '' });
+                  }}
+                  disabled={!newOption.label.trim()}
+                  className="h-6 w-6"
+                >
+                  <PlusCircle size={12} />
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
 
         {field.type === 'number' && (
