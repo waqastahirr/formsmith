@@ -1,10 +1,11 @@
 
-import { Form, FormField, FormSubmission } from "@/types/formTypes";
+import { Form, FormField, FormSubmission, CustomFieldTemplate } from "@/types/formTypes";
 
 // In a real application, these would be API calls to your Express backend
 // For now, we'll use localStorage for persistence
 
-const STORAGE_KEY = 'form_builder_forms';
+const FORMS_STORAGE_KEY = 'form_builder_forms';
+const CUSTOM_FIELDS_STORAGE_KEY = 'form_builder_custom_fields';
 
 // Helper to generate unique IDs
 const generateId = (): string => {
@@ -14,13 +15,24 @@ const generateId = (): string => {
 
 // Load forms from storage
 const loadForms = (): Form[] => {
-  const storedForms = localStorage.getItem(STORAGE_KEY);
+  const storedForms = localStorage.getItem(FORMS_STORAGE_KEY);
   return storedForms ? JSON.parse(storedForms) : [];
 };
 
 // Save forms to storage
 const saveForms = (forms: Form[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(forms));
+  localStorage.setItem(FORMS_STORAGE_KEY, JSON.stringify(forms));
+};
+
+// Load custom field templates from storage
+const loadCustomFields = (): CustomFieldTemplate[] => {
+  const storedCustomFields = localStorage.getItem(CUSTOM_FIELDS_STORAGE_KEY);
+  return storedCustomFields ? JSON.parse(storedCustomFields) : [];
+};
+
+// Save custom field templates to storage
+const saveCustomFields = (customFields: CustomFieldTemplate[]): void => {
+  localStorage.setItem(CUSTOM_FIELDS_STORAGE_KEY, JSON.stringify(customFields));
 };
 
 export const formService = {
@@ -235,6 +247,92 @@ export const formService = {
         // Here you would typically save the submission to your MongoDB database
         // For now, we just return the submission object
         resolve(submission);
+      }, 300);
+    });
+  },
+
+  // Custom Field Template Methods
+  
+  // Get all custom field templates
+  getCustomFields: async (): Promise<CustomFieldTemplate[]> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(loadCustomFields());
+      }, 300);
+    });
+  },
+
+  // Get a single custom field template by ID
+  getCustomFieldById: async (id: string): Promise<CustomFieldTemplate | null> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const customFields = loadCustomFields();
+        const customField = customFields.find(f => f.id === id) || null;
+        resolve(customField);
+      }, 300);
+    });
+  },
+
+  // Create a new custom field template
+  createCustomField: async (data: Omit<CustomFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<CustomFieldTemplate> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const customFields = loadCustomFields();
+        const now = new Date().toISOString();
+        
+        const newCustomField: CustomFieldTemplate = {
+          ...data,
+          id: generateId(),
+          createdAt: now,
+          updatedAt: now
+        };
+        
+        customFields.push(newCustomField);
+        saveCustomFields(customFields);
+        resolve(newCustomField);
+      }, 300);
+    });
+  },
+
+  // Update an existing custom field template
+  updateCustomField: async (id: string, data: Partial<Omit<CustomFieldTemplate, 'id' | 'createdAt'>>): Promise<CustomFieldTemplate | null> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const customFields = loadCustomFields();
+        const index = customFields.findIndex(f => f.id === id);
+        
+        if (index === -1) {
+          resolve(null);
+          return;
+        }
+        
+        const updatedCustomField: CustomFieldTemplate = {
+          ...customFields[index],
+          ...data,
+          updatedAt: new Date().toISOString()
+        };
+        
+        customFields[index] = updatedCustomField;
+        saveCustomFields(customFields);
+        resolve(updatedCustomField);
+      }, 300);
+    });
+  },
+
+  // Delete a custom field template
+  deleteCustomField: async (id: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const customFields = loadCustomFields();
+        const filteredCustomFields = customFields.filter(f => f.id !== id);
+        
+        if (filteredCustomFields.length === customFields.length) {
+          resolve(false);
+          return;
+        }
+        
+        saveCustomFields(filteredCustomFields);
+        resolve(true);
       }, 300);
     });
   }

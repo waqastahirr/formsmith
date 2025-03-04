@@ -1,6 +1,6 @@
 
 import { FC, useState, useEffect } from 'react';
-import { FormField, FieldOption, FieldType } from '@/types/formTypes';
+import { FormField, FieldOption, FieldType, CustomFieldTemplate } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,10 +18,13 @@ import {
   Mail,
   LockKeyhole,
   Calendar,
-  Flame
+  Flame,
+  Box
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { useQuery } from '@tanstack/react-query';
+import { formService } from '@/services/formService';
 
 interface FormFieldOptionsProps {
   field: FormField;
@@ -36,7 +39,9 @@ const fieldTypeOptions: { value: FieldType; label: string; icon: JSX.Element }[]
   { value: 'multiSelect', label: 'Multi Select', icon: <List size={16} /> },
   { value: 'checkbox', label: 'Checkbox', icon: <CheckSquare size={16} /> },
   { value: 'textArray', label: 'Text Array', icon: <AlignLeft size={16} /> },
+  { value: 'numberArray', label: 'Number Array', icon: <AlignLeft size={16} /> },
   { value: 'naturalGasInput', label: 'Natural Gas Input', icon: <Flame size={16} /> },
+  { value: 'custom', label: 'Custom Field', icon: <Box size={16} /> },
   { value: 'email', label: 'Email', icon: <Mail size={16} /> },
   { value: 'password', label: 'Password', icon: <LockKeyhole size={16} /> },
   { value: 'date', label: 'Date', icon: <Calendar size={16} /> },
@@ -74,6 +79,14 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
   const hasOptions = ['select', 'multiSelect'].includes(field.type);
   const isArrayType = ['textArray', 'numberArray'].includes(field.type);
   const isNaturalGasInput = field.type === 'naturalGasInput';
+  const isCustomField = field.type === 'custom';
+
+  // Fetch custom field templates for dropdown
+  const { data: customFields = [], isLoading: isLoadingCustomFields } = useQuery({
+    queryKey: ['customFields'],
+    queryFn: formService.getCustomFields,
+    enabled: isCustomField || field.type === 'custom'
+  });
 
   // Initialize subfield options for natural gas input
   useEffect(() => {
@@ -147,10 +160,24 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
     handleSubFieldOptionsChange(subFieldKey, updatedOptions);
   };
 
+  const handleCustomFieldSelect = (customFieldId: string) => {
+    onUpdate({
+      ...field,
+      customFieldId
+    });
+  };
+
   useEffect(() => {
     if (!hasOptions && options.length > 0) {
       setOptions([]);
       handleChange('options', []);
+    }
+  }, [field.type]);
+
+  // Reset customFieldId when changing away from custom type
+  useEffect(() => {
+    if (!isCustomField && field.customFieldId) {
+      handleChange('customFieldId', undefined);
     }
   }, [field.type]);
 
@@ -188,6 +215,34 @@ const FormFieldOptions: FC<FormFieldOptionsProps> = ({ field, onUpdate }) => {
             </SelectContent>
           </Select>
         </div>
+
+        {isCustomField && (
+          <div className="space-y-2">
+            <Label htmlFor="custom-field-template">Custom Field Template</Label>
+            <Select
+              value={field.customFieldId}
+              onValueChange={handleCustomFieldSelect}
+              disabled={isLoadingCustomFields}
+            >
+              <SelectTrigger id="custom-field-template">
+                <SelectValue placeholder="Select custom field template" />
+              </SelectTrigger>
+              <SelectContent>
+                {customFields.map((template: CustomFieldTemplate) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {customFields.length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                No custom field templates available. 
+                <a href="/custom-fields" className="text-primary ml-1">Create one</a>
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="field-description">Description (Optional)</Label>

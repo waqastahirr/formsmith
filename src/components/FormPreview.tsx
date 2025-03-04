@@ -1,5 +1,6 @@
-import { FC, useState } from 'react';
-import { Form, FormField } from '@/types/formTypes';
+
+import { FC, useState, useEffect } from 'react';
+import { Form, FormField, CustomFieldTemplate } from '@/types/formTypes';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -7,14 +8,22 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X, Flame } from 'lucide-react';
+import { Plus, X, Flame, Box } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useQuery } from '@tanstack/react-query';
+import { formService } from '@/services/formService';
 
 interface FormPreviewProps {
   form: Form;
 }
 
 const FormPreview: FC<FormPreviewProps> = ({ form }) => {
+  // Query to get all custom field templates
+  const { data: customFields = [] } = useQuery({
+    queryKey: ['customFields'],
+    queryFn: formService.getCustomFields
+  });
+
   return (
     <Card className="w-full glass-panel animate-slide-in">
       <CardHeader>
@@ -34,7 +43,7 @@ const FormPreview: FC<FormPreviewProps> = ({ form }) => {
                 <p className="text-sm text-muted-foreground">{field.description}</p>
               )}
               
-              {renderField(field)}
+              {renderField(field, customFields)}
             </div>
           ))}
           
@@ -171,6 +180,35 @@ const NaturalGasInputField: FC<{ field: FormField }> = ({ field }) => {
   );
 };
 
+const CustomFieldComponent: FC<{ field: FormField, customFields: CustomFieldTemplate[] }> = ({ field, customFields }) => {
+  const customFieldTemplate = customFields.find(cf => cf.id === field.customFieldId);
+  
+  if (!customFieldTemplate) {
+    return <div className="text-red-500">Custom field template not found</div>;
+  }
+  
+  return (
+    <Card className="border border-muted p-4">
+      <div className="flex items-center mb-2">
+        <Box size={16} className="mr-2 text-blue-500" />
+        <h3 className="text-sm font-medium">{customFieldTemplate.name}</h3>
+      </div>
+      
+      <div className="space-y-4">
+        {customFieldTemplate.fields.map((subField) => (
+          <div key={subField.id} className="space-y-2">
+            <Label htmlFor={`${field.id}-${subField.id}`} className="text-xs">
+              {subField.label}
+              {subField.required && <span className="ml-1 text-destructive">*</span>}
+            </Label>
+            {renderField(subField, customFields, `${field.id}-${subField.id}`)}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
 const ArrayField: FC<{ field: FormField, type: 'text' | 'number' }> = ({ field, type }) => {
   const [items, setItems] = useState<string[]>([""]);
   
@@ -228,14 +266,16 @@ const ArrayField: FC<{ field: FormField, type: 'text' | 'number' }> = ({ field, 
   );
 };
 
-const renderField = (field: FormField) => {
+const renderField = (field: FormField, customFields: CustomFieldTemplate[], idPrefix?: string) => {
+  const fieldId = idPrefix || field.id;
+  
   switch (field.type) {
     case 'text':
     case 'email':
     case 'password':
       return (
         <Input
-          id={field.id}
+          id={fieldId}
           type={field.type}
           placeholder={field.placeholder}
           className="w-full"
@@ -246,7 +286,7 @@ const renderField = (field: FormField) => {
     case 'number':
       return (
         <Input
-          id={field.id}
+          id={fieldId}
           type="number"
           placeholder={field.placeholder}
           min={field.validations?.min}
@@ -259,7 +299,7 @@ const renderField = (field: FormField) => {
     case 'textarea':
       return (
         <Textarea
-          id={field.id}
+          id={fieldId}
           placeholder={field.placeholder}
           className="w-full"
           required={field.required}
@@ -269,7 +309,7 @@ const renderField = (field: FormField) => {
     case 'select':
       return (
         <Select>
-          <SelectTrigger id={field.id}>
+          <SelectTrigger id={fieldId}>
             <SelectValue placeholder={field.placeholder || "Select an option"} />
           </SelectTrigger>
           <SelectContent>
@@ -287,7 +327,7 @@ const renderField = (field: FormField) => {
       // In a real app, you'd use a component that supports multiple selections
       return (
         <Select>
-          <SelectTrigger id={field.id}>
+          <SelectTrigger id={fieldId}>
             <SelectValue placeholder={field.placeholder || "Select options"} />
           </SelectTrigger>
           <SelectContent>
@@ -303,7 +343,7 @@ const renderField = (field: FormField) => {
     case 'checkbox':
       return (
         <Checkbox
-          id={field.id}
+          id={fieldId}
           required={field.required}
         />
       );
@@ -317,7 +357,7 @@ const renderField = (field: FormField) => {
     case 'date':
       return (
         <Input
-          id={field.id}
+          id={fieldId}
           type="date"
           className="w-full"
           required={field.required}
@@ -326,11 +366,14 @@ const renderField = (field: FormField) => {
       
     case 'naturalGasInput':
       return <NaturalGasInputField field={field} />;
+      
+    case 'custom':
+      return <CustomFieldComponent field={field} customFields={customFields} />;
     
     default:
       return (
         <Input
-          id={field.id}
+          id={fieldId}
           placeholder={field.placeholder}
           className="w-full"
           required={field.required}

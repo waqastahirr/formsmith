@@ -13,7 +13,8 @@ import {
   LockKeyhole, 
   Calendar,
   ListOrdered,
-  Flame  // Added for natural gas
+  Flame,
+  Box  // Added for custom fields
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -54,6 +55,8 @@ const getFieldIcon = (type: string) => {
       return <AlignLeft size={16} />;
     case 'naturalGasInput':
       return <Flame size={16} />;
+    case 'custom':
+      return <Box size={16} />;
     default:
       return <Type size={16} />;
   }
@@ -113,6 +116,9 @@ const DraggableField: FC<DraggableFieldProps> = ({
           
           <div className="mt-2 text-xs text-muted-foreground">
             Type: <span className="font-semibold">{field.type}</span>
+            {field.type === 'custom' && field.customFieldId && (
+              <span className="ml-1">(Custom)</span>
+            )}
           </div>
         </div>
         

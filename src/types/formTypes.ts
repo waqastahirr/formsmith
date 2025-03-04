@@ -11,14 +11,15 @@ export type FieldType =
   | 'password'
   | 'date'
   | 'textarea'
-  | 'naturalGasInput';  // New composite field type
+  | 'naturalGasInput'  // Composite field type
+  | 'custom';          // New field type for custom components
 
 export interface FieldOption {
   label: string;
   value: string;
 }
 
-// New interface for natural gas input subfields
+// Interface for natural gas input subfields
 export interface NaturalGasSubFields {
   value: string;
   units: string;
@@ -51,6 +52,17 @@ export interface FormField {
     stages?: FieldOption[];
     uses?: FieldOption[];
   };
+  customFieldId?: string; // Reference to a custom field definition
+  subFields?: FormField[]; // For custom field definitions
+}
+
+export interface CustomFieldTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  fields: FormField[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Form {
