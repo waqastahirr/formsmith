@@ -1,6 +1,8 @@
 
 import { FC } from 'react';
 import FormBuilder from '@/components/FormBuilder';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Index: FC = () => {
   return (
@@ -11,6 +13,11 @@ const Index: FC = () => {
           <p className="text-lg text-muted-foreground">
             Create beautiful, functional forms with an intuitive drag-and-drop builder
           </p>
+          <div className="flex justify-center mt-4">
+            <Button asChild variant="outline" className="mr-2">
+              <Link to="/custom-fields">Custom Field Builder</Link>
+            </Button>
+          </div>
         </div>
       </header>
       
