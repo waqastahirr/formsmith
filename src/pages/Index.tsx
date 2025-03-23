@@ -17,6 +17,9 @@ const Index: FC = () => {
             <Button asChild variant="outline" className="mr-2">
               <Link to="/custom-fields">Custom Field Builder</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/stepper-demo">Stepper Demo</Link>
+            </Button>
           </div>
         </div>
       </header>
